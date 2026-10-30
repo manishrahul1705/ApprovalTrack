@@ -165,7 +165,22 @@ async function markCaseDocumentPendingConfirmation(document, session, eventType,
   }], session ? { session } : {});
 }
 
-export async function processDocument(documentId) {
+let localProcessing = Promise.resolve();
+let draining = false;
+export async function drainDocumentProcessing() {
+  draining = true;
+  await localProcessing;
+}
+
+export function processDocument(documentId) {
+  if (draining) return Promise.resolve(); // UPLOADED records remain for the next scanner run.
+  if (env.LOCAL_AI_SERIAL !== "true" || env.AI_SERVICE_URL) return processDocumentNow(documentId);
+  const execution = localProcessing.then(() => processDocumentNow(documentId));
+  localProcessing = execution.catch(() => {});
+  return execution;
+}
+
+async function processDocumentNow(documentId) {
   const document = await Document.findOneAndUpdate(
     { _id: documentId, status: { $in: ["UPLOADED", "AI_FAILED"] } },
     { $set: { status: "PROCESSING" } },

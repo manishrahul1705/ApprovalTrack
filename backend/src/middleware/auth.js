@@ -38,6 +38,9 @@ function cookieValue(req) {
 }
 
 function cookieSiteAttributes(req) {
+  if (env.SESSION_COOKIE_SAME_SITE !== "auto") {
+    return { sameSite: env.SESSION_COOKIE_SAME_SITE === "lax" ? "Lax" : "None", secure: env.NODE_ENV === "production" || env.SESSION_COOKIE_SAME_SITE === "none" };
+  }
   const frontendHost = new URL(env.FRONTEND_ORIGIN).hostname.toLowerCase();
   const apiHost = String(req.get("host") || "").split(":")[0].toLowerCase();
   const frontendLabels = frontendHost.split(".").slice(-2).join(".");
@@ -128,6 +131,9 @@ export function requireRole(...roles) {
 export function csrfProtection(req, res, next) {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   if (req.path === "/webhooks/resend") return next();
+  if (req.get("origin") && req.get("origin") !== env.FRONTEND_ORIGIN) {
+    return res.status(403).json({ data: null, error: { code: "CSRF_ORIGIN_REJECTED", message: "Request origin is not allowed" }, meta: { requestId: req.id } });
+  }
   if (req.get("x-requested-with") !== "XMLHttpRequest") {
     return res.status(403).json({ data: null, error: { code: "CSRF_HEADER_REQUIRED", message: "X-Requested-With: XMLHttpRequest is required" }, meta: { requestId: req.id } });
   }

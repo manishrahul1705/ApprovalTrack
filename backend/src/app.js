@@ -25,9 +25,11 @@ import { casesRouter } from "./modules/cases/router.js";
 import { stakeholdersRouter } from "./modules/stakeholders/router.js";
 import { evcRouter } from "./modules/evc/router.js";
 import { adminIncidentsRouter } from "./modules/admin/incidents/router.js";
+import { scanBuffer } from "./modules/documents/clamav.js";
 
 export function createApp() {
   const app = express();
+  app.set("trust proxy", env.TRUST_PROXY_HOPS);
   app.disable("x-powered-by");
   app.use((req, res, next) => {
     const providedId = req.get("x-request-id") || "";
@@ -93,13 +95,20 @@ export function createApp() {
         pythonAvailable = false;
       }
     }
+    let scannerReady = !env.CLAMAV_HOST && env.NODE_ENV !== "production";
+    if (env.CLAMAV_HOST) {
+      try {
+        scannerReady = (await scanBuffer(Buffer.from("ApprovalTrack readiness probe"), { timeoutMs: 1000 })).status === "CLEAN";
+      } catch { scannerReady = false; }
+    }
     const mongoReady = mongoose.connection.readyState === 1;
-    const status = mongoReady && uploadWritable ? 200 : 503;
+    const status = mongoReady && uploadWritable && pythonAvailable && scannerReady ? 200 : 503;
     res.status(status).json({
       data: { status: status === 200 ? "ok" : "degraded", checks: {
         mongodb: mongoReady ? "ok" : "unavailable",
         uploadDirectory: uploadWritable ? "ok" : "unavailable",
         python: pythonAvailable ? "ok" : "unavailable",
+        antivirus: scannerReady ? "ok" : "unavailable",
       } },
       error: null,
       meta: { requestId: req.id },

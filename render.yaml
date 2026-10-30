@@ -1,0 +1,54 @@
+# Review cost/settings before manually creating this Blueprint. No auto deployment.
+services:
+  - type: web
+    name: approvaltrack-api
+    runtime: docker
+    branch: deployment-vercel-render
+    region: singapore
+    plan: pro
+    numInstances: 1
+    autoDeployTrigger: 'off'
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    maxShutdownDelaySeconds: 300
+    disk:
+      name: approvaltrack-data
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Import/audit storage before explicitly enabling the DB-writing API/scheduler.
+      - key: STORAGE_MAINTENANCE
+        value: "true"
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: COOKIE_SECRET
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: SESSION_COOKIE_SAME_SITE
+        value: lax
+      - key: TRUST_PROXY_HOPS
+        value: 1
+      - key: QUEUE_MODE
+        value: inline
+      - key: LOCAL_AI_SERIAL
+        value: "true"
+      - key: AI_SERVICE_URL
+        value: ""
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: CLAMAV_HOST
+        value: 127.0.0.1
+      - key: CLAMAV_PORT
+        value: 3310
+      - key: CLAMAV_TIMEOUT_MS
+        value: 10000
+      - key: TZ
+        value: Asia/Kolkata
+      - key: NOTIFY_MODE
+        value: log

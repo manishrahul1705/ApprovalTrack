@@ -1,4 +1,7 @@
 .git
+**/.npm-cache
+.pip-cache
+deployment-private
 .env
 .env.*
 !.env.example
