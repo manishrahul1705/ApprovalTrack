@@ -1,3 +1,4 @@
+import { allowedOrigins } from "../config/frontendOrigins.js";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import argon2 from "argon2";
 import { z } from "zod";
@@ -131,7 +132,7 @@ export function requireRole(...roles) {
 export function csrfProtection(req, res, next) {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   if (req.path === "/webhooks/resend") return next();
-  if (req.get("origin") && req.get("origin") !== env.FRONTEND_ORIGIN) {
+  if (req.get("origin") && !allowedOrigins.has(req.get("origin"))) {
     return res.status(403).json({ data: null, error: { code: "CSRF_ORIGIN_REJECTED", message: "Request origin is not allowed" }, meta: { requestId: req.id } });
   }
   if (req.get("x-requested-with") !== "XMLHttpRequest") {
