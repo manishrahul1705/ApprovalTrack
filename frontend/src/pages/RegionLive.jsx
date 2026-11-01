@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, FileText } from "lucide-react";
+import { Activity, AlertTriangle, FileText, ShieldAlert, TrendingUp, Users } from "lucide-react";
 import { Badge, Card, DataTable, StatCard } from "../components/ui/primitives";
 
 export default function RegionLive({ data }) {
@@ -18,23 +18,37 @@ export default function RegionLive({ data }) {
     { accessorKey: "returned", header: "Returned" },
   ];
 
-  return <>
-    <div className="stat-grid">
-      <StatCard label="Cases in scope" value={data.cases.length} icon={FileText} />
-      <StatCard label="In progress" value={data.cases.filter((item) => item.status === "In progress").length} icon={Activity} />
-      <StatCard label="Returned" value={data.cases.filter((item) => item.status === "Action required").length} icon={AlertTriangle} />
-      <StatCard label="Open alerts" value={openAlerts.length} icon={AlertTriangle} />
+  const stageCounts = Object.entries(data.cases.reduce((counts, item) => {
+    counts[item.stage] = (counts[item.stage] || 0) + 1;
+    return counts;
+  }, {}));
+
+  return (
+    <div className="region-workspace">
+      <div className="region-stat-grid">
+        <div className="region-stat-item tone-blue"><StatCard label="Cases in scope" value={data.cases.length} icon={FileText} /></div>
+        <div className="region-stat-item tone-amber"><StatCard label="In progress" value={data.cases.filter((item) => item.status === "In progress").length} icon={Activity} /></div>
+        <div className="region-stat-item tone-green"><StatCard label="Returned" value={data.cases.filter((item) => item.status === "Action required").length} icon={AlertTriangle} /></div>
+        <div className="region-stat-item tone-red"><StatCard label="Open alerts" value={openAlerts.length} icon={ShieldAlert} /></div>
+      </div>
+
+      <Card className="region-table-card" title="Cases by region" description="Counts are based on cases returned by your authorized backend scope.">
+        <DataTable data={casesByRegion} columns={columns} emptyText="No regional cases are available in your scope." />
+      </Card>
+
+      <Card className="region-stage-card" title="Cases by stage">
+        {data.cases.length
+          ? <div className="region-stage-list">{stageCounts.map(([stage, count]) => (
+              <div className="region-stage-item" key={stage}>
+                <div className="region-stage-pill"><Badge variant="info">{stage}</Badge></div>
+                <div className="region-stage-copy">
+                  <strong>{count}</strong>
+                  <small>cases</small>
+                </div>
+              </div>
+            ))}</div>
+          : <p className="muted">No case stages are available.</p>}
+      </Card>
     </div>
-    <Card title="Cases by region" description="Counts are based on cases returned by your authorized backend scope.">
-      <DataTable data={casesByRegion} columns={columns} emptyText="No regional cases are available in your scope." />
-    </Card>
-    <Card title="Cases by stage">
-      {data.cases.length
-        ? <div className="notification-list">{Object.entries(data.cases.reduce((counts, item) => {
-          counts[item.stage] = (counts[item.stage] || 0) + 1;
-          return counts;
-        }, {})).map(([stage, count]) => <div className="notification-item" key={stage}><Badge variant="info">{stage}</Badge><div className="notification-copy"><strong>{count}</strong><small>cases</small></div></div>)}</div>
-        : <p className="muted">No case stages are available.</p>}
-    </Card>
-  </>;
+  );
 }

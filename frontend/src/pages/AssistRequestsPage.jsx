@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, ClipboardCheck, Clock3, FileText } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ClipboardCheck, Clock3, FileText } from "lucide-react";
 import { PageHeader } from "../components/stakeholder/PortalPrimitives";
-import { Badge, Card, DataTable, StatCard } from "../components/ui/primitives";
+import { Badge, Card, DataTable } from "../components/ui/primitives";
 import { caseWorkflowApi } from "../services/caseWorkflow";
 
 function daysUntil(value) {
@@ -69,7 +69,14 @@ export default function AssistRequestsPage() {
     { accessorKey: "status", header: "Status", cell: ({ getValue }) => <Badge variant={getValue() === "Completed" ? "success" : getValue() === "Overdue" ? "danger" : "warning"}>{getValue()}</Badge> },
   ];
 
-  return <section className="page-container">
+  const summaryCards = [
+    { label: "Open", value: pending.length, note: "Awaiting response", tone: "amber", icon: ClipboardCheck },
+    { label: "Due within 7 days", value: dueSoon.length, note: "Needs attention soon", tone: "blue", icon: Clock3 },
+    { label: "Overdue", value: overdue.length, note: "Past the requested date", tone: "red", icon: AlertTriangle },
+    { label: "Completed", value: completed.length, note: "Resolved requests", tone: "green", icon: CheckCircle2 },
+  ];
+
+  return <section className="page-container assist-requests-page">
     <PageHeader
       eyebrow="ASSIGNED REVIEW TASKS"
       title="Stage assist requests"
@@ -80,14 +87,23 @@ export default function AssistRequestsPage() {
     {busy && <p className="muted" role="status">Loading assigned requests…</p>}
 
     {!busy && !error && requests.length > 0 && <>
-      <div className="stat-grid">
-        <StatCard label="Open" value={pending.length} note="Awaiting response" icon={ClipboardCheck} />
-        <StatCard label="Due within 7 days" value={dueSoon.length} note="Needs attention soon" icon={Clock3} />
-        <StatCard label="Overdue" value={overdue.length} note="Past the requested date" icon={AlertTriangle} />
-        <StatCard label="Completed" value={completed.length} note="Resolved requests" icon={CheckCircle2} />
+      <div className="assist-summary-grid">
+        {summaryCards.map(({ label, value, note, tone, icon: Icon }) => (
+          <article key={label} className={`assist-summary-card assist-summary-card--${tone}`}>
+            <div className="assist-summary-icon"><Icon size={18} /></div>
+            <div className="assist-summary-copy">
+              <div className="assist-summary-topline">
+                <span>{label}</span>
+                <ArrowRight size={16} />
+              </div>
+              <strong>{value}</strong>
+              <small>{note}</small>
+            </div>
+          </article>
+        ))}
       </div>
 
-      <Card title="Assist request register" description="Review case-specific assistance requests raised during stage processing.">
+      <Card className="assist-register-card" title="Assist request register" description="Review case-specific assistance requests raised during stage processing.">
         <DataTable data={rows} columns={columns} emptyText="No assist requests are available in your scope." />
       </Card>
     </>}

@@ -60,9 +60,9 @@ button.stakeholder-role-select { min-height: 36px; padding: 0 10px; background: 
 .stakeholder-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 16px; }
 .stakeholder-panel-heading h2 { margin: 0 0 3px; color: #17233a; font: 600 19px/1.4 Inter, Arial, sans-serif; letter-spacing: -.2px; }
 .stakeholder-panel-heading p { margin: 0; color: #738096; font-size: 11px; line-height: 1.5; }
-.stakeholder-pill { display: inline-flex; align-items: center; justify-content: center; gap: 5px; max-width: 100%; padding: 5px 8px; color: #167043; background: #ecfdf3; border: 1px solid #b7ebcb; border-radius: 999px; font-size: 10px; font-weight: 650; line-height: 1.25; }
+.stakeholder-pill { display: inline-flex; align-items: center; justify-content: center; gap: 5px; max-width: 100%; padding: 7px 10px; color: #167043; background: #ecfdf3; border: 1px solid #b7ebcb; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; line-height: 1.25; text-transform: uppercase; }
 .stakeholder-pill svg { flex: 0 0 auto; }
-.stakeholder-pill.tone-amber { color: #8a5200; background: #fff7e6; border-color: #f4d38f; }
+.stakeholder-pill.tone-amber { color: #9a5b00; background: linear-gradient(135deg, #fff4d8 0%, #ffefbf 100%); border-color: #f2d188; }
 .stakeholder-pill.tone-blue { color: #1d4ed8; background: #eff6ff; border-color: #c7dafa; }
 .stakeholder-pill.tone-slate { color: #596579; background: #f3f5f8; border-color: #e0e5ec; }
 .stakeholder-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 17px; padding: 12px 13px; color: #245087; background: #eff6ff; border: 1px solid #cfe0fb; border-radius: 8px; font-size: 12px; line-height: 1.55; }

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Info } from "lucide-react";
 import { stakeholderApi } from "../../services/stakeholder";
 
 const currentYear = new Date().getFullYear();
@@ -85,11 +84,6 @@ export default function InstitutionAnnualReportPage() {
           <h1>Internal Committee annual report</h1>
           <p>Record the institution’s annual report on sexual-harassment prevention and Internal Committee activity.</p>
         </div>
-      </div>
-
-      <div className="institution-annual-alert">
-        <Info size={18} />
-        <span>APH 2024–27 §6.48 describes an institution-level Internal Committee annual report due by 30 June. This is separate from individual faculty yearly reports. Check amendments and the applicable cycle before filing.</span>
       </div>
 
       <section className="institution-annual-panel">

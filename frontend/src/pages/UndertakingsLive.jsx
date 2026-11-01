@@ -22,14 +22,6 @@ export default function UndertakingsLive({ data }) {
 
   return (
     <div className="undertakings-page">
-      <div className="undertakings-page-header">
-        <div>
-          <p className="undertakings-eyebrow">OBLIGATION REGISTER</p>
-          <h1>Undertakings</h1>
-          <p className="undertakings-subtitle">Review actual undertaking records and due dates.</p>
-        </div>
-      </div>
-
       <div className="undertakings-summary-grid">
         <div className="undertaking-stat-card tone-blue">
           <div className="stat-icon-wrap"><ClipboardCheck size={20} /></div>

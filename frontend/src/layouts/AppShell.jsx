@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { ChevronDown, CircleHelp, Menu, Search, Shield, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Menu, Search, Shield, ShieldCheck } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { authApi } from "../services/auth";
 import AlertsDrawer from "../components/AlertsDrawer";
@@ -24,7 +24,7 @@ const navigation = {
   "SAC/SHC member": [["Hearings and appeals", "/hearings"], ["Cases", "/cases"], ["Assist requests", "/assist-requests"], ["Notifications", "/notifications"]],
   "Competent authority": [["Final approval queue", "/bureau/approvals"], ["Cases", "/cases"], ["Assist requests", "/assist-requests"], ["Region dashboard", "/region"], ["Reports", "/reports"]],
   "Senior authority": [["Region dashboard", "/region"], ["Reports", "/reports"], ["Escalations", "/escalations"]],
-  Admin: [["Legacy decisions", "/decisions"], ["Legacy monitoring", "/admin/incidents"], ["College grievances", "/admin/grievances"], ["Policy and stages", "/policy"], ["Assist requests", "/assist-requests"], ["Notifications", "/notifications"], ["Alert rules", "/alert-rules"], ["Announcements & complaints", "/governance"], ["Users and roles", "/users"], ["AI service", "/ai-service"], ["Audit trail", "/audit"]],
+  Admin: [["Legacy decisions", "/decisions"], ["Legacy monitoring", "/admin/incidents"], ["College grievances", "/admin/grievances"], ["Policy and stages", "/policy"], ["Notifications", "/notifications"], ["Alert rules", "/alert-rules"], ["Announcements & complaints", "/governance"], ["Users and roles", "/users"], ["AI service", "/ai-service"], ["Audit trail", "/audit"]],
   "Grievance officer": [["Institution grievance queue", "/grievances"]],
   Ombudsperson: [["Student appeals", "/grievances"]],
   "University/DTE Officer": [["Faculty/staff appeals", "/grievances"]],
@@ -107,7 +107,18 @@ export default function AppShell({ children }) {
     </header>
     <div className="workspace-layout">
       <button className={`sidebar-scrim ${drawer ? "visible" : ""}`} aria-label="Close navigation" onClick={() => setDrawer(false)} />
-      <aside className={`sidebar ${rail ? "sidebar-rail" : ""} ${drawer ? "sidebar-drawer" : ""}`}><div className="sidebar-header"><div className="agency-emblem"><ShieldCheck size={20} /></div>{!rail && <div><strong>AICTE</strong><small>ApprovalTrack</small></div>}</div><div className="nav-caption">{!rail && "WORKSPACE"}</div><nav aria-label="Role navigation">{links.map(([label, path]) => {const isActive = location.pathname === path || (path === "/documents" && location.pathname.startsWith("/documents/")) || (path === "/cases" && (location.pathname.startsWith("/case/") || location.pathname.startsWith("/cases/")));return <NavLink end onClick={() => setDrawer(false)} title={rail ? label : undefined} className={`side-link ${isActive ? "active" : ""}`} to={path} key={`${role}-${label}`}><span className="nav-icon"><NavIcon label={label} /></span>{!rail && <span>{label}</span>}</NavLink>;})}</nav><div className="sidebar-bottom"><div className="policy-compact"><Shield size={15} />{!rail && <span>Policy status<br /><small>Managed by backend</small></span>}</div><button className="collapse-rail" onClick={() => setRail(!rail)}>{rail ? "›" : "‹"}{!rail && " Collapse sidebar"}</button></div></aside>
+      <aside className={`sidebar ${rail ? "sidebar-rail" : ""} ${drawer ? "sidebar-drawer" : ""}`} data-role={role}>
+        <div className="sidebar-header">
+          <div className="agency-emblem"><ShieldCheck size={20} /></div>
+          {!rail && <div><strong>AICTE</strong><small>ApprovalTrack</small></div>}
+          <button className="sidebar-toggle" type="button" onClick={() => setRail(!rail)} aria-label={rail ? "Expand sidebar" : "Collapse sidebar"}>
+            {rail ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
+        <div className="nav-caption">{!rail && "WORKSPACE"}</div>
+        <nav aria-label="Role navigation">{links.map(([label, path]) => {const isActive = location.pathname === path || (path === "/documents" && location.pathname.startsWith("/documents/")) || (path === "/cases" && (location.pathname.startsWith("/case/") || location.pathname.startsWith("/cases/")));return <NavLink end onClick={() => setDrawer(false)} title={rail ? label : undefined} className={`side-link ${isActive ? "active" : ""}`} to={path} key={`${role}-${label}`}><span className="nav-icon"><NavIcon label={label} /></span>{!rail && <span>{label}</span>}</NavLink>;})}</nav>
+        <div className="sidebar-bottom" aria-hidden="true" />
+      </aside>
       <main className="main-column"><div className="page-container">{children}<footer className="site-footer"><span>ApprovalTrack</span><span>Institutional workflow management</span></footer></div></main>
     </div>
   </div>;

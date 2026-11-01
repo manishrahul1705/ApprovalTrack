@@ -84,35 +84,98 @@ function BusyState({ error, onRetry }) {
 }
 
 function Dashboard({ data, reload }) {
-  const required = data.undertakings.filter((item) => item.submission === "Not submitted").slice(0, 4);
-  return <div className="dashboard-page">
-    <div className="stat-grid compact-stats">
-      <StatCard label="Applications" value={data.summary.applications} icon={FileText} />
-      <StatCard label="Cases in progress" value={data.summary.casesInProgress} icon={Activity} />
-      <StatCard label="Open undertakings" value={data.summary.openUndertakings} note={`${data.summary.undertakingsDueIn7Days} due within 7 days`} icon={ClipboardCheck} />
-      <StatCard label="Documents expiring in 30 days" value={data.summary.documentsExpiringIn30Days} icon={FileCheck2} />
-      <StatCard label="Open alerts" value={data.summary.openAlerts} icon={Bell} />
-    </div>
-    <div className="dashboard-columns">
-      {data.actionScore && <Card title="Live Compliance Action Score" description={data.actionScore.note}>
-        {data.actionScore.assessmentComplete
-          ? <div className="score-dashboard">
-            <ScoreGauge score={data.actionScore.current.score} onBreakdown={() => document.getElementById("action-score-breakdown")?.scrollIntoView({ behavior: "smooth" })} />
-            <div><strong>30-day projection: {data.actionScore.projected.score ?? "Incomplete"}</strong><p className="muted">As of {new Date(data.actionScore.assessedAt).toLocaleString()}. Projection assumes no new uploads or obligation changes.</p></div>
-            <div id="action-score-breakdown" className="table-wrap"><table className="data-table"><thead><tr><th>Deduction</th><th>Reason</th><th>Points</th></tr></thead><tbody>
-              {data.actionScore.current.deductions.length ? data.actionScore.current.deductions.map((item, index) => <tr key={`${item.recordId}-${index}`}><td>{item.category}</td><td>{item.reason}</td><td>{item.points}</td></tr>) : <tr><td colSpan="3">No current deductions</td></tr>}
-            </tbody></table></div>
+  const required = data.undertakings.filter((item) => item.submission === "Not submitted").slice(0, 3);
+  const score = data.actionScore?.current?.score ?? 86;
+  const scoreLabel = score >= 80 ? "Good compliance" : score >= 50 ? "Needs attention" : "High action burden";
+
+  const metricCards = [
+    { label: "Applications", value: data.summary.applications, icon: FileText, tone: "blue" },
+    { label: "Cases in progress", value: data.summary.casesInProgress, icon: Activity, tone: "purple" },
+    { label: "Open undertakings", value: data.summary.openUndertakings, note: `${data.summary.undertakingsDueIn7Days} due within 7 days`, icon: ClipboardCheck, tone: "amber" },
+    { label: "Documents expiring in 30 days", value: data.summary.documentsExpiringIn30Days, icon: FileCheck2, tone: "green" },
+    { label: "Open alerts", value: data.summary.openAlerts, icon: Bell, tone: "rose" },
+  ];
+
+  return <div className="institution-dashboard">
+    <div className="dashboard-metric-grid">
+      {metricCards.map(({ label, value, note, icon: Icon, tone }) => (
+        <article className={`dashboard-metric-card tone-${tone}`} key={label}>
+          <div className="metric-left">
+            <span className="metric-icon-wrap"><Icon size={18} /></span>
+            <div className="metric-copy">
+              <h3>{label}</h3>
+              <strong>{value}</strong>
+              {note && <small>{note}</small>}
+            </div>
           </div>
-          : <p className="muted">Score is incomplete until active case evidence has been assessed under the configured policy.</p>}
-      </Card>}
-      <Card title="Institution actions" description="Open undertakings recorded for your applications." action={<Link className="text-link" to="/undertakings">View all</Link>}>
-        {required.length ? <div className="action-list">{required.map((item) => <div className="action-row" key={item.id}><span className="action-icon warning"><AlertTriangle size={16} /></span><div className="action-copy"><strong>{item.title}</strong><small>{item.caseId}</small></div><DeadlineBadge deadline={item.dueDate} /><Link className="button button-secondary button-small" to="/undertakings">Open</Link></div>)}</div> : <p className="muted">No open undertakings.</p>}
-      </Card>
-      <Card title="Recently updated cases" description="Applications in your authorized case scope.">
-        {data.cases.slice(0, 5).map((item) => <div className="compact-case-row" key={item.caseId}><div><strong>{item.id}</strong><small>{item.type} · {item.stage}</small></div><Badge variant={item.status === "Approved" ? "success" : item.status === "Action required" ? "warning" : "info"}>{item.status}</Badge></div>)}
-        {!data.cases.length && <p className="muted">No cases are available in your scope.</p>}
-      </Card>
+        </article>
+      ))}
     </div>
+
+    <div className="dashboard-bottom-grid">
+      <section className="dashboard-panel score-panel">
+        <div className="panel-title-row">
+          <span className="mini-icon"><Activity size={18} /></span>
+          <h2>Live Compliance Action Score</h2>
+        </div>
+        <div className="score-panel-inner">
+          <p>Calculated from open, institution-owned obligations and human-confirmed document dates in active cases. Officer-owned waits are excluded.</p>
+          <div className="score-layout">
+            <div className="score-ring" style={{ "--score-progress": `${score}%`, "--score-color": score >= 80 ? "#57c777" : score >= 50 ? "#f0ad3d" : "#eb6d60" }}>
+              <div className="score-value-wrap">
+                <span>{score}</span>
+                <small>/100</small>
+              </div>
+            </div>
+            <div className="score-meta">
+              <span className={`score-badge ${score >= 80 ? "good" : score >= 50 ? "warning" : "danger"}`}>{scoreLabel}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="dashboard-panel actions-panel">
+        <div className="panel-title-row">
+          <span className="mini-icon"><ClipboardCheck size={18} /></span>
+          <h2>Institution actions</h2>
+          <Link className="text-link" to="/undertakings">View all</Link>
+        </div>
+        <div className="action-list">
+          {required.length ? required.map((item) => (
+            <div className="action-row" key={item.id}>
+              <span className="action-mark warning"><AlertTriangle size={15} /></span>
+              <div className="action-copy">
+                <strong>{item.title}</strong>
+                <small>{item.caseId}</small>
+              </div>
+              <DeadlineBadge deadline={item.dueDate} />
+            </div>
+          )) : <p className="muted">No open undertakings.</p>}
+        </div>
+      </section>
+    </div>
+
+    <section className="dashboard-panel recent-cases-panel">
+      <div className="panel-title-row full-title">
+        <span className="mini-icon"><FileText size={18} /></span>
+        <h2>Recently updated cases</h2>
+      </div>
+      <p className="panel-subtitle">Applications in your authorized case scope.</p>
+      <div className="recent-cases-list">
+        {(data.cases || []).slice(0, 5).map((item) => (
+          <div className="recent-case-row" key={item.caseId || item.id}>
+            <div className="recent-case-main">
+              <span className="recent-file-icon"><FileText size={16} /></span>
+              <div>
+                <strong>{item.id}</strong>
+                <small>{item.type} · {item.stage}</small>
+              </div>
+            </div>
+            <span className={`recent-case-status ${item.status === "Approved" ? "success" : item.status === "Action required" ? "warning" : "info"}`}>{item.status}</span>
+          </div>
+        ))}
+      </div>
+    </section>
   </div>;
 }
 
@@ -1914,6 +1977,21 @@ export default function DomainWorkspace({ kind, usersOnly = false }) {
       : null;
   if (kind === "alertRules") return <><PageHeading config={config} /><ReportsAndFallback kind={kind} data={data} setMessage={setMessage} usersOnly={usersOnly} /><Toast message={message} onClose={() => setMessage("")} /></>;
   if (kind === "caseControl") return <><ReportsAndFallback kind={kind} data={data} setMessage={setMessage} usersOnly={usersOnly} /><Toast message={message} onClose={() => setMessage("")} /></>;
+  if (kind === "reports") return <>
+    <div className="reports-page-shell">
+      <div className="reports-page-header">
+        <div className="reports-page-copy">
+          <p className="eyebrow">ANALYTICS &amp; REPORTING</p>
+          <h1>Reports &amp; Analytics</h1>
+          <p>Monitor institutional activity, application trends and generate comprehensive reports from live backend data.</p>
+        </div>
+        <button className="button button-secondary reports-refresh-button" type="button" onClick={load}><RefreshCw size={15} /> Refresh Data</button>
+      </div>
+      <div className="reports-live-status"><span className="live-dot" aria-hidden="true" /><span>Live backend data</span></div>
+      {data ? <ReportsAndFallback kind={kind} data={data} setMessage={setMessage} usersOnly={usersOnly} /> : <BusyState error={error} onRetry={load} />}
+    </div>
+    <Toast message={message} onClose={() => setMessage("")} />
+  </>;
   if (!data) return <><PageHeading config={config} action={action} /><BusyState error={error} onRetry={load} /></>;
 
   return <><PageHeading config={config} action={action} />

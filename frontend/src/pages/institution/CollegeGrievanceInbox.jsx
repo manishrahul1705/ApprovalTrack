@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Download, FileText, ShieldCheck } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { PageHeader, Panel, StatusPill } from "../../components/stakeholder/PortalPrimitives";
 import { stakeholderApi } from "../../services/stakeholder";
 
@@ -82,10 +82,9 @@ export default function CollegeGrievanceInbox() {
       title="College Grievances"
       description="View only grievances acknowledged and forwarded by AICTE. The complainant's identity is never shown to the college."
     />
-    <div className="grievance-privacy-note"><ShieldCheck size={18} /><span>Complainants are anonymous to your institution. Use the reference number for all replies; do not attempt to identify the complainant.</span></div>
     {error && <p className="state-card state-error" role="alert">{error}</p>}
     {message && <p className="note success-note" role="status">{message}</p>}
-    <Panel title="Forwarded grievances" description="Submit your official response and supporting proof before each response deadline." action={<button className="button button-secondary" onClick={load}>Refresh</button>}>
+    <Panel title="Forwarded grievances" description="Submit your official response and supporting proof before each response deadline." action={<button className="button button-secondary" onClick={load}>Refresh</button>} className="grievance-inbox-panel">
       {loading ? <p>Loading grievances…</p> : complaints.length
         ? <div className="grievance-complaint-list">{complaints.map((complaint) => {
           const resolved = complaint.status === "RESOLVED";
